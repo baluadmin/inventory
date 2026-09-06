@@ -5,7 +5,6 @@ from datetime import datetime
 
 st.set_page_config(page_title="Store Inventory Dashboard", page_icon="📦", layout="wide")
 
-# Your deployed Google Apps Script Web App URL
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwU4S0brHSf2NUXolXiPyCfNtczKmho-Q2K_NHXm8GYTT54pbA7pXhDg8PbBJIh_ejqNQ/exec"
 
 st.title("📦 Store Inventory & Sales Management System")
@@ -15,11 +14,17 @@ st.markdown("---")
 def get_stocks():
     try:
         response = requests.get(WEB_APP_URL)
+        # Check if response is valid JSON
         return response.json()
-    except:
-        return []
+    except Exception as e:
+        return None
 
 stocks_data = get_stocks()
+
+if stocks_data is None or not isinstance(stocks_data, list):
+    st.error("⚠️ Could not load data from Google Sheets. Please ensure your Apps Script is deployed with 'Who has access' set to **'Anyone'**.")
+    st.stop()
+
 df_stocks = pd.DataFrame(stocks_data)
 
 col1, col2 = st.columns(2, gap="large")
@@ -53,8 +58,8 @@ with col1:
                 st.rerun()
             else:
                 st.error("Failed to connect to Google Sheet backend.")
-        else:
-            st.warning("Please add products to your 'stocks' sheet first.")
+    else:
+        st.warning("No product data found. Check your 'stocks' tab column headers (`PRODUCT ID`, `PRODUCT NAME`, `STOCK`).")
 
 with col2:
     st.subheader("📊 Live Stocks Inventory")
