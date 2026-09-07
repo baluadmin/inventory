@@ -57,7 +57,9 @@ with tab1:
       }
 
       res = requests.post(WEB_APP_URL, json=payload)
-      if res.status_code == 200:
+      res_json = res.json() if res.status_code == 200 else {}
+
+      if res.status_code == 200 and res_json.get("status") == "success":
         st.success(
             f"Sale recorded! Stock updated for {selected_product}:"
             f" {stock_after_sale}"
@@ -65,7 +67,8 @@ with tab1:
         st.cache_data.clear()
         st.rerun()
       else:
-        st.error("Failed to connect to Google Sheet.")
+        err_msg = res_json.get("message", "Unknown error")
+        st.error(f"Failed to update Google Sheet: {err_msg}")
   else:
     st.warning("No products found in stock table.")
 
@@ -94,14 +97,17 @@ with tab2:
       }
 
       res = requests.post(WEB_APP_URL, json=payload)
-      if res.status_code == 200:
+      res_json = res.json() if res.status_code == 200 else {}
+
+      if res.status_code == 200 and res_json.get("status") == "success":
         st.success(
             f"Successfully added {qty_purchased} units to {selected_product_p}!"
         )
         st.cache_data.clear()
         st.rerun()
       else:
-        st.error("Failed to connect to Google Sheet.")
+        err_msg = res_json.get("message", "Unknown error")
+        st.error(f"Failed to update Google Sheet: {err_msg}")
 
 st.markdown("---")
 st.subheader("📊 Live Stocks Inventory")
