@@ -9,10 +9,21 @@ st.set_page_config(
     page_title="Bavesh Inventory", page_icon="💼", layout="wide"
 )
 
-# Professional Enterprise Billing CSS: Clean spacing, crisp typography, and modern light card layout
+# Professional Enterprise Billing CSS: Eliminate top gap and frame title in a clean card box
 st.markdown(
     """
     <style>
+    /* Remove default Streamlit top blank space */
+    header[data-testid="stHeader"] {
+        display: none !important;
+    }
+    .block-container {
+        padding-top: 1rem !important;
+        padding-bottom: 2rem !important;
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+    }
+
     .stApp {
         background-color: #f4f6f9 !important;
         color: #333333 !important;
@@ -45,7 +56,6 @@ st.markdown(
     
     /* Hide Streamlit Chrome */
     #MainMenu {visibility: hidden;}
-    header {visibility: hidden;}
     footer {visibility: hidden;}
     .stDeployButton {display: none;}
     
@@ -102,8 +112,11 @@ if "authenticated" not in st.session_state:
 
 if not st.session_state["authenticated"]:
   st.markdown(
-      "<h2 style='color: #2b6cb0; font-size: 1.8rem; margin-bottom: 0.5rem;'>"
-      "Bavesh Enterprise Login</h2>",
+      """
+        <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 20px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-bottom: 20px;">
+            <h2 style="color: #2b6cb0; margin: 0; font-size: 1.5rem; font-weight: 700;">Bavesh Enterprise Login</h2>
+        </div>
+    """,
       unsafe_allow_html=True,
   )
   st.markdown("Please enter your credentials to access the billing dashboard.")
@@ -122,12 +135,17 @@ if not st.session_state["authenticated"]:
         st.error("Invalid username or password.")
   st.stop()
 
+# Header Box
 st.markdown(
-    "<h1 style='text-align: center; color: #1a202c; font-size: 2.2rem;"
-    " margin-bottom: 0;'>Bavesh Inventory & Sales Management System</h1>",
+    """
+    <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 20px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 18px;">
+        <h2 style="color: #1a202c; margin: 0; font-size: 1.6rem; font-weight: 700; letter-spacing: -0.01em;">
+            Bavesh Inventory & Sales Management System
+        </h2>
+    </div>
+""",
     unsafe_allow_html=True,
 )
-st.markdown("<br>", unsafe_allow_html=True)
 
 
 def get_stocks():
