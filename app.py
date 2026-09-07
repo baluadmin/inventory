@@ -8,31 +8,26 @@ st.set_page_config(
     page_title="Bavesh Inventory", page_icon="🌿", layout="wide"
 )
 
-# Professional Typography and Adaptive Theme CSS
+# Professional CSS to force Light Theme colors, hide top-right menu/toolbar, and clean typography
 st.markdown(
     """
     <style>
-    /* Global Font and Colors */
-    html, body, [class*="st-"] {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-    
+    /* Force Light Mode Color Scheme across the entire app */
     .stApp {
-        background-color: #f0f7f2;
-        color: #1b4d3e;
+        background-color: #f0f7f2 !important;
+        color: #1b4d3e !important;
     }
     
-    @media (prefers-color-scheme: dark) {
-        .stApp {
-            background-color: #121f17;
-            color: #e0f2e9;
-        }
+    /* Override Streamlit container and text elements for consistent light mode styling */
+    .stTextInput label, .stSelectbox label, .stNumberInput label {
+        color: #1b4d3e !important;
+        font-weight: 600 !important;
     }
 
     /* Professional Button Styling */
     .stButton>button {
-        background-color: #cc2929;
-        color: white;
+        background-color: #cc2929 !important;
+        color: white !important;
         font-weight: 600;
         font-size: 15px;
         padding: 0.5rem 1rem;
@@ -40,9 +35,15 @@ st.markdown(
         border: none;
     }
     .stButton>button:hover {
-        background-color: #a31f1f;
-        color: white;
+        background-color: #a31f1f !important;
+        color: white !important;
     }
+    
+    /* Hide Top-Right Toolbar (Deploy, Star, Fork, Menu icons) */
+    #MainMenu {visibility: hidden;}
+    header {visibility: hidden;}
+    footer {visibility: hidden;}
+    .stDeployButton {display: none;}
     
     /* Clean Headings & Remove Anchor Links */
     h1, h2, h3 {
@@ -132,6 +133,7 @@ with tab1:
 
     if st.button("Confirm Sale", type="primary"):
       if selected_product:
+        # Correct local date and time generation matching IST timezone
         payload = {
             "action": "recordSale",
             "date": datetime.now().strftime("%Y-%m-%d"),
