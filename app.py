@@ -21,82 +21,86 @@ def get_stocks():
 stocks_data = get_stocks()
 df_stocks = pd.DataFrame(stocks_data)
 
-# Initialize shopping cart in session state
 if "cart" not in st.session_state:
     st.session_state.cart = []
 
-tab1, tab2 = st.tabs(["⚡ Record Sale (Multi-Item Cart)", "📥 Add New Purchase"])
+tab1, tab2 = st.tabs(["⚡ Record Sale", "📥 Add New Purchase"])
 
 with tab1:
-    st.subheader("Process Customer Sale with Multiple Products")
+    st.subheader("Process Customer Sale (Select & Add)")
 
-    typed_prod_id = st.text_input("Enter Product ID / Code")
-    qty_sold = st.number_input("Quantity", min_value=1, value=1, step=1, key="cart_qty")
+    if not df_stocks.empty and "PRODUCT ID" in df_stocks.columns:
+        # Create a friendly dropdown choice combining ID and Product Name
+        df_stocks["display_name"] = df_stocks["PRODUCT ID"].astype(str) + " - " + df_stocks["PRODUCT NAME"].astype(str)
+        selected_display = st.selectbox("Select Product", df_stocks["display_name"].tolist())
 
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("Add to Cart"):
-            if not typed_prod_id:
-                st.error("Please enter a Product ID.")
+        qty_sold = st.number_input("Quantity Sold", min_value=1, value=1, step=1, key="easy_qty")
+
+        if st.button("➕ Add to Cart", type="primary"):
+            selected_row = df_stocks[df_stocks["display_name"] == selected_display].iloc[0]
+            prod_id = str(selected_row["PRODUCT ID"])
+            prod_name = str(selected_row["PRODUCT NAME"])
+            current_stock = int(selected_row["STOCK"])
+
+            if qty_sold > current_stock:
+                st.error(f"Only {current_stock} left in stock for {prod_name}!")
             else:
-                matched_row = df_stocks[df_stocks["PRODUCT ID"].astype(str).str.strip().str.lower() == typed_prod_id.strip().lower()]
-                if not matched_row.empty:
-                    prod_name = matched_row.iloc[0]["PRODUCT NAME"]
-                    current_stock = int(matched_row.iloc[0]["STOCK"])
-
-                    if qty_sold > current_stock:
-                        st.error(f"Only {current_stock} left in stock for {prod_name}!")
-                    else:
-                        st.session_state.cart.append({
-                            "productId": typed_prod_id.strip(),
-                            "productName": prod_name,
-                            "quantity": int(qty_sold)
-                        })
-                        st.success(f"Added {qty_sold}x {prod_name} to cart.")
+                # Check if already in cart, update quantity if it is
+                existing_item = next((item for item in st.session_state.cart if item["productId"] == prod_id), None)
+                if existing_item:
+                    existing_item["quantity"] += int(qty_sold)
                 else:
-                    st.error("Product ID not found!")
+                    st.session_state.cart.append({
+                        "productId": prod_id,
+                        "productName": prod_name,
+                        "quantity": int(qty_sold)
+                    })
+                st.success(f"Added {qty_sold}x {prod_name} to cart.")
+    else:
+        st.warning("Loading products or no stock found...")
 
-    # Display current cart items
+    # Show Cart
     if st.session_state.cart:
-        st.markdown("### 🛒 Current Cart Items")
-        df_cart = pd.DataFrame(st.session_state.cart)
-        st.dataframe(df_cart, use_container_width=True)
+        st.markdown("### 🛒 Cart Summary")
+        st.dataframe(pd.DataFrame(st.session_state.cart), use_container_width=True)
 
-        if st.button("Checkout & Submit All Sales", type="primary"):
-            success_all = True
-            current_time = datetime.now().strftime("%H:%M")
-            current_date = datetime.now().strftime("%d/%m/%Y")
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🚀 Checkout All Items", type="primary"):
+                success_all = True
+                current_time = datetime.now().strftime("%H:%M")
+                current_date = datetime.now().strftime("%d/%m/%Y")
 
-            for item in st.session_state.cart:
-                payload = {
-                    "action": "recordSale",
-                    "date": current_date,
-                    "time": current_time,
-                    "productId": item["productId"],
-                    "productName": item["productName"],
-                    "quantity": item["quantity"]
-                }
-                res = requests.post(WEB_APP_URL, json=payload)
-                if res.status_code != 200:
-                    success_all = False
+                for item in st.session_state.cart:
+                    payload = {
+                        "action": "recordSale",
+                        "date": current_date,
+                        "time": current_time,
+                        "productId": item["productId"],
+                        "productName": item["productName"],
+                        "quantity": item["quantity"]
+                    }
+                    res = requests.post(WEB_APP_URL, json=payload)
+                    if res.status_code != 200:
+                        success_all = False
 
-            if success_all:
-                st.success("All items checked out successfully and stocks updated!")
+                if success_all:
+                    st.success("Checkout successful! Stocks updated in Google Sheets.")
+                    st.session_state.cart = []
+                    st.cache_data.clear()
+                    st.rerun()
+                else:
+                    st.error("Checkout failed. Check connection.")
+        with col2:
+            if st.button("🗑️ Clear Cart"):
                 st.session_state.cart = []
-                st.cache_data.clear()
                 st.rerun()
-            else:
-                st.error("Error communicating with Google Sheet during checkout.")
-
-        if st.button("Clear Cart"):
-            st.session_state.cart = []
-            st.rerun()
 
 with tab2:
     st.subheader("Add Incoming Stock (New Purchase)")
-    new_prod_id = st.text_input("Product ID / Code", value="balu 033", key="p_id")
-    new_prod_name = st.text_input("Product Name", key="p_name")
-    qty_purchased = st.number_input("Quantity Purchased", min_value=1, value=1, step=1, key="purchase_qty")
+    new_prod_id = st.text_input("Product ID / Code", value="3")
+    new_prod_name = st.text_input("Product Name")
+    qty_purchased = st.number_input("Quantity Purchased", min_value=1, value=1, step=1, key="p_qty")
 
     if st.button("Submit Purchase", type="primary"):
         payload = {
@@ -114,11 +118,9 @@ with tab2:
             st.cache_data.clear()
             st.rerun()
         else:
-            st.error("Failed to connect to Google Sheet.")
+            st.error("Failed to connect.")
 
 st.markdown("---")
 st.subheader("📊 Live Stocks Inventory")
 if not df_stocks.empty:
-    st.dataframe(df_stocks, use_container_width=True)
-else:
-    st.info("Loading stock data from Google Sheet...")
+    st.dataframe(df_stocks.drop(columns=["display_name"], errors="ignore"), use_container_width=True)
