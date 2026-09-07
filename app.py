@@ -5,7 +5,7 @@ import requests
 import streamlit as st
 
 st.set_page_config(
-    page_title="Bavesh Store Inventory", page_icon="📦", layout="wide"
+    page_title="Bavesh Inventory", page_icon="📦", layout="wide"
 )
 
 # Custom CSS for Light Red Background
@@ -28,7 +28,7 @@ if "authenticated" not in st.session_state:
 
 # Login Screen
 if not st.session_state["authenticated"]:
-  st.title("🔐 Bavesh Store Login")
+  st.title("🔐 Bavesh Login")
   st.markdown("Please enter your credentials to access the inventory system.")
 
   with st.form("login_form"):
@@ -45,10 +45,10 @@ if not st.session_state["authenticated"]:
         st.error("Invalid username or password.")
   st.stop()
 
-# Main App Header with Shop Name
+# Main App Header without "Store" and link symbols
 st.markdown(
-    "<h1 style='text-align: center; color: #990000;'>🏪 Bavesh Store Inventory"
-    " & Sales Management System</h1>",
+    "<h1 style='text-align: center; color: #990000;'>Bavesh Inventory & Sales"
+    " Management System</h1>",
     unsafe_allow_html=True,
 )
 st.markdown("---")
