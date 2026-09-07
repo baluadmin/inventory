@@ -10,11 +10,34 @@ st.set_page_config(
 
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwU4S0brHSf2NUXolXiPyCfNtczKmho-Q2K_NHXm8GYTT54pbA7pXhDg8PbBJIh_ejqNQ/exec"
 
+# Initialize session state for authentication
+if "authenticated" not in st.session_state:
+  st.session_state["authenticated"] = False
+
+# Login Screen
+if not st.session_state["authenticated"]:
+  st.title("🔐 System Login")
+  st.markdown("Please enter your credentials to access the inventory system.")
+
+  with st.form("login_form"):
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
+    submit_btn = st.form_submit_button("Login", type="primary")
+
+    if submit_btn:
+      if username == "bavesh" and password == "Balu@123":
+        st.session_state["authenticated"] = True
+        st.success("Login successful!")
+        st.rerun()
+      else:
+        st.error("Invalid username or password.")
+  st.stop()  # Stop execution here if not logged in
+
+# Main App (Runs only after successful login)
 st.title("📦 Store Inventory & Sales Management System")
 st.markdown("---")
 
 
-# Removed @st.cache_data completely so it fetches fresh data every time
 def get_stocks():
   try:
     fresh_url = f"{WEB_APP_URL}?t={time.time()}"
