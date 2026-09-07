@@ -7,7 +7,7 @@ st.set_page_config(
     page_title="Store Inventory Dashboard", page_icon="📦", layout="wide"
 )
 
-WEB_APP_URL = "YOUR_NEW_DEPLOYED_WEB_APP_URL_HERE"
+WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwU4S0brHSf2NUXolXiPyCfNtczKmho-Q2K_NHXm8GYTT54pbA7pXhDg8PbBJIh_ejqNQ/exec"
 
 st.title("📦 Store Inventory & Sales Management System")
 st.markdown("---")
