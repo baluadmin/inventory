@@ -1,4 +1,5 @@
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import time
 import pandas as pd
 import requests
@@ -152,7 +153,6 @@ with tab1:
         )
         total_price = qty_sold * unit_price
 
-        # Check if product already in cart, update quantity
         existing_item = next(
             (
                 item
@@ -177,7 +177,7 @@ with tab1:
         st.rerun()
 
     if st.session_state["cart"]:
-      st.markdown("### 🛒 Current Bill Items")
+      st.markdown("### Current Bill Items")
       cart_df = pd.DataFrame(st.session_state["cart"])
       st.markdown(
           cart_df.to_html(index=False, classes="styled-table"),
@@ -201,11 +201,15 @@ with tab1:
       with col_confirm:
         if st.button("Confirm & Complete Sale", type="primary"):
           success_all = True
+          ist_now = datetime.now(ZoneInfo("Asia/Kolkata"))
+          current_date = ist_now.strftime("%Y-%m-%d")
+          current_time = ist_now.strftime("%H:%M:%S")
+
           for item in st.session_state["cart"]:
             payload = {
                 "action": "recordSale",
-                "date": datetime.now().strftime("%Y-%m-%d"),
-                "time": datetime.now().strftime("%H:%M:%S"),
+                "date": current_date,
+                "time": current_time,
                 "productName": item["Product"],
                 "qtySold": int(item["Quantity"]),
                 "notAvailable": not_available,
@@ -241,10 +245,11 @@ with tab2:
 
   if st.button("Submit Purchase / Add Stock", type="primary"):
     if new_prod_name.strip():
+      ist_now = datetime.now(ZoneInfo("Asia/Kolkata"))
       payload = {
           "action": "recordPurchase",
-          "date": datetime.now().strftime("%Y-%m-%d"),
-          "time": datetime.now().strftime("%H:%M:%S"),
+          "date": ist_now.strftime("%Y-%m-%d"),
+          "time": ist_now.strftime("%H:%M:%S"),
           "productId": new_prod_id.strip(),
           "productName": new_prod_name.strip(),
           "qtyPurchased": int(qty_purchased),
