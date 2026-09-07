@@ -6,74 +6,89 @@ import requests
 import streamlit as st
 
 st.set_page_config(
-    page_title="Bavesh Inventory", page_icon="🌿", layout="wide"
+    page_title="Bavesh Inventory", page_icon="💼", layout="wide"
 )
 
-# Professional Clean Light Theme CSS
+# Professional Enterprise Billing CSS: Clean spacing, crisp typography, and modern light card layout
 st.markdown(
     """
     <style>
     .stApp {
-        background-color: #f8f9fa !important;
-        color: #212529 !important;
+        background-color: #f4f6f9 !important;
+        color: #333333 !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
     
+    /* Input Field Labels */
     .stTextInput label, .stSelectbox label, .stNumberInput label {
-        color: #212529 !important;
+        color: #495057 !important;
         font-weight: 600 !important;
+        font-size: 14px !important;
     }
 
+    /* Enterprise Primary Buttons */
     .stButton>button {
-        background-color: #0d6efd !important;
+        background-color: #2b6cb0 !important;
         color: white !important;
         font-weight: 600;
-        font-size: 15px;
-        padding: 0.5rem 1rem;
+        font-size: 14px;
+        padding: 0.5rem 1.2rem;
         border-radius: 6px;
         border: none;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transition: all 0.2s ease;
     }
     .stButton>button:hover {
-        background-color: #0b5ed7 !important;
+        background-color: #2c5282 !important;
         color: white !important;
     }
     
+    /* Hide Streamlit Chrome */
     #MainMenu {visibility: hidden;}
     header {visibility: hidden;}
     footer {visibility: hidden;}
     .stDeployButton {display: none;}
     
+    /* Headings */
     h1, h2, h3, h4, h5, h6 {
-        color: #212529 !important;
+        color: #1a202c !important;
         font-weight: 700 !important;
-        letter-spacing: -0.025em;
+        letter-spacing: -0.02em;
     }
     h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
         display: none !important;
     }
 
+    /* Modern Table Formatting */
     table {
         width: 100% !important;
         margin: auto;
         border-collapse: collapse;
         background-color: #ffffff;
-        color: #212529;
-        border-radius: 6px;
+        color: #2d3748;
+        border-radius: 8px;
         overflow: hidden;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     }
     th {
-        background-color: #343a40 !important;
+        background-color: #2b6cb0 !important;
         color: white !important;
         text-align: center !important;
-        padding: 12px;
-        font-size: 16px;
+        padding: 14px;
+        font-size: 14px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
     }
     td {
         text-align: center !important;
-        padding: 10px;
-        border-bottom: 1px solid #dee2e6;
-        font-size: 15px;
-        color: #212529 !important;
+        padding: 12px;
+        border-bottom: 1px solid #edf2f7;
+        font-size: 14px;
+        color: #4a5568 !important;
+    }
+    tr:last-child td {
+        border-bottom: none;
     }
     </style>
 """,
@@ -87,15 +102,16 @@ if "authenticated" not in st.session_state:
 
 if not st.session_state["authenticated"]:
   st.markdown(
-      "<h2 style='color: #343a40; font-size: 1.8rem;'>Bavesh System Login</h2>",
+      "<h2 style='color: #2b6cb0; font-size: 1.8rem; margin-bottom: 0.5rem;'>"
+      "Bavesh Enterprise Login</h2>",
       unsafe_allow_html=True,
   )
-  st.markdown("Please enter your credentials to access the inventory system.")
+  st.markdown("Please enter your credentials to access the billing dashboard.")
 
   with st.form("login_form"):
     username = st.text_input("Username")
     password = st.text_input("Password", type="password")
-    submit_btn = st.form_submit_button("Login", type="primary")
+    submit_btn = st.form_submit_button("Sign In", type="primary")
 
     if submit_btn:
       if username == "bavesh" and password == "Balu@123":
@@ -107,11 +123,11 @@ if not st.session_state["authenticated"]:
   st.stop()
 
 st.markdown(
-    "<h1 style='text-align: center; color: #343a40; font-size: 2.2rem;"
+    "<h1 style='text-align: center; color: #1a202c; font-size: 2.2rem;"
     " margin-bottom: 0;'>Bavesh Inventory & Sales Management System</h1>",
     unsafe_allow_html=True,
 )
-st.markdown("---")
+st.markdown("<br>", unsafe_allow_html=True)
 
 
 def get_stocks():
@@ -126,14 +142,14 @@ def get_stocks():
 stocks_data = get_stocks()
 df_stocks = pd.DataFrame(stocks_data)
 
-tab1, tab2 = st.tabs(["Record Multi-Item Sale", "Add New Product / Purchase"])
+tab1, tab2 = st.tabs(["🛒 Multi-Item Billing Counter", "📦 Product & Stock Management"])
 
 with tab1:
-  st.subheader("Process a Multi-Item Customer Sale")
+  st.subheader("Point of Sale Billing")
   if not df_stocks.empty and "PRODUCT NAME" in df_stocks.columns:
     df_stocks["DISPLAY_LABEL"] = (
         df_stocks["PRODUCT NAME"]
-        + " (Stock: "
+        + " (Available Stock: "
         + df_stocks["STOCK"].astype(str)
         + ")"
     )
@@ -145,10 +161,10 @@ with tab1:
     if "cart" not in st.session_state:
       st.session_state["cart"] = []
 
-    col1, col2, col3 = st.columns([2, 1, 1])
+    col1, col2, col3 = st.columns([2, 1, 1], gap="medium")
     with col1:
       selected_display = st.selectbox(
-          "Select Product (with live stock)",
+          "Search & Select Product",
           options=product_options,
           key="cart_product",
       )
@@ -159,7 +175,7 @@ with tab1:
       )
     with col3:
       st.markdown("<br>", unsafe_allow_html=True)
-      if st.button("Add to Bill"):
+      if st.button("Add Item"):
         matched_row = df_stocks[df_stocks["PRODUCT NAME"] == selected_product]
 
         if not matched_row.empty:
@@ -202,11 +218,12 @@ with tab1:
                 "Unit Price": unit_price,
                 "Total Price": total_price,
             })
-          st.success(f"Added {selected_product} to cart!")
+          st.success(f"Added {selected_product} to invoice!")
           st.rerun()
 
+    st.markdown("<br>", unsafe_allow_html=True)
     if st.session_state["cart"]:
-      st.markdown("### Current Bill Items")
+      st.markdown("#### Invoice Line Items")
       cart_df = pd.DataFrame(st.session_state["cart"])
       st.markdown(
           cart_df.to_html(index=False, classes="styled-table"),
@@ -215,20 +232,21 @@ with tab1:
 
       grand_total = cart_df["Total Price"].sum()
       st.markdown(
-          f"<h3 style='text-align: right; color: #d9534f;'>Grand Total:"
-          f" ₹{grand_total:,.2f}</h3>",
+          f"<h3 style='text-align: right; color: #e53e3e; margin-top: 15px;'>Grand"
+          f" Total: ₹{grand_total:,.2f}</h3>",
           unsafe_allow_html=True,
       )
 
-      not_available = st.text_input("Customer Wanted (Not Available Product)")
+      not_available = st.text_input("Customer Wanted (Out of Stock Item Requests)")
 
-      col_clear, col_confirm = st.columns(2)
+      st.markdown("<br>", unsafe_allow_html=True)
+      col_clear, col_confirm = st.columns([1, 1], gap="medium")
       with col_clear:
-        if st.button("Clear Bill"):
+        if st.button("Clear Invoice"):
           st.session_state["cart"] = []
           st.rerun()
       with col_confirm:
-        if st.button("Confirm & Complete Sale", type="primary"):
+        if st.button("Complete Transaction", type="primary"):
           success_all = True
           ist_now = datetime.now(ZoneInfo("Asia/Kolkata"))
           current_date = ist_now.strftime("%Y-%m-%d")
@@ -251,28 +269,32 @@ with tab1:
               success_all = False
 
           if success_all:
-            st.success("All items billed and stocks updated successfully!")
+            st.success("Transaction completed and inventory synchronized!")
             st.session_state["cart"] = []
             st.rerun()
           else:
-            st.error("Some items failed to update in Google Sheets.")
+            st.error("Transaction synchronization failed with backend server.")
     else:
-      st.info("No items added to the bill yet.")
+      st.info("No items added to current invoice.")
   else:
-    st.warning("No products found in stock table.")
+    st.warning("No products found in inventory repository.")
 
 with tab2:
   st.subheader("Add New Product or Restock Purchase")
-  new_prod_id = st.text_input("Product ID / Code (e.g., 101)")
-  new_prod_name = st.text_input("Product Name")
-  qty_purchased = st.number_input(
-      "Quantity Purchased", min_value=1, value=1, step=1, key="p_qty"
-  )
-  price = st.number_input(
-      "Price", min_value=0.0, value=0.0, step=1.0, key="p_price"
-  )
+  col_p1, col_p2 = st.columns(2, gap="medium")
+  with col_p1:
+    new_prod_id = st.text_input("Product ID / Code (e.g., 101)")
+    new_prod_name = st.text_input("Product Name")
+  with col_p2:
+    qty_purchased = st.number_input(
+        "Quantity Purchased", min_value=1, value=1, step=1, key="p_qty"
+    )
+    price = st.number_input(
+        "Unit Price", min_value=0.0, value=0.0, step=1.0, key="p_price"
+    )
 
-  if st.button("Submit Purchase / Add Stock", type="primary"):
+  st.markdown("<br>", unsafe_allow_html=True)
+  if st.button("Submit Stock Entry", type="primary"):
     if new_prod_name.strip():
       ist_now = datetime.now(ZoneInfo("Asia/Kolkata"))
       payload = {
@@ -290,20 +312,20 @@ with tab2:
 
       if res.status_code == 200 and res_json.get("status") == "success":
         st.success(
-            f"Successfully added/updated purchase for {new_prod_name}!"
+            f"Successfully updated stock entry for {new_prod_name}!"
         )
         st.rerun()
       else:
         err_msg = res_json.get("message", "Unknown error")
-        st.error(f"Failed to update Google Sheet: {err_msg}")
+        st.error(f"Failed to update database: {err_msg}")
     else:
       st.error("Please enter a valid Product Name.")
 
-st.markdown("---")
-st.subheader("Live Stocks Inventory")
+st.markdown("<br><hr><br>", unsafe_allow_html=True)
+st.subheader("Live Enterprise Stock Inventory")
 if not df_stocks.empty:
   display_df = df_stocks.drop(columns=["DISPLAY_LABEL"], errors="ignore")
   html_table = display_df.to_html(index=False, classes="styled-table")
   st.markdown(html_table, unsafe_allow_html=True)
 else:
-  st.info("Loading stock data from Google Sheet...")
+  st.info("Loading inventory records...")
