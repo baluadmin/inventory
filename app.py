@@ -5,15 +5,25 @@ import requests
 import streamlit as st
 
 st.set_page_config(
-    page_title="Bavesh Inventory", page_icon="📦", layout="wide"
+    page_title="Bavesh Inventory", page_icon="🌿", layout="wide"
 )
 
-# Custom CSS for Light Red Background
+# Custom CSS for Professional Green Theme with Red Accents
 st.markdown(
     """
     <style>
     .stApp {
-        background-color: #ffe6e6;
+        background-color: #f0f7f2;
+    }
+    .stButton>button {
+        background-color: #cc2929;
+        color: white;
+        border-radius: 4px;
+        border: none;
+    }
+    .stButton>button:hover {
+        background-color: #a31f1f;
+        color: white;
     }
     </style>
 """,
@@ -28,7 +38,10 @@ if "authenticated" not in st.session_state:
 
 # Login Screen
 if not st.session_state["authenticated"]:
-  st.title("🔐 Bavesh Login")
+  st.markdown(
+      "<h2 style='color: #1b4d3e;'>Bavesh System Login</h2>",
+      unsafe_allow_html=True,
+  )
   st.markdown("Please enter your credentials to access the inventory system.")
 
   with st.form("login_form"):
@@ -45,9 +58,9 @@ if not st.session_state["authenticated"]:
         st.error("Invalid username or password.")
   st.stop()
 
-# Main App Header without "Store" and link symbols
+# Main App Header without emojis or link symbols
 st.markdown(
-    "<h1 style='text-align: center; color: #990000;'>Bavesh Inventory & Sales"
+    "<h1 style='text-align: center; color: #1b4d3e;'>Bavesh Inventory & Sales"
     " Management System</h1>",
     unsafe_allow_html=True,
 )
@@ -158,7 +171,7 @@ with tab2:
       st.error("Please enter a valid Product Name.")
 
 st.markdown("---")
-st.subheader("📊 Live Stocks Inventory")
+st.subheader("Live Stocks Inventory")
 if not df_stocks.empty:
   st.dataframe(df_stocks, use_container_width=True)
 else:
