@@ -27,27 +27,26 @@ with tab1:
     st.subheader("Process a Customer Sale")
     if not df_stocks.empty and "PRODUCT NAME" in df_stocks.columns:
         product_list = df_stocks["PRODUCT NAME"].tolist()
-        selected_product = st.selectbox("Select Product (Sale)", product_list, key="sale_prod")
+        selected_product = st.selectbox("Select Product", product_list, key="sale_prod")
         qty_sold = st.number_input("Quantity Sold", min_value=1, value=1, step=1, key="sale_qty")
-        not_available = st.text_input("Customer Wanted (Not Available Product)")
+
+        # Match the columns of your 'sale' tab: Date(A), Time(B), Product ID(C), Product Name(D), Quantity(E)
+        selected_row = df_stocks[df_stocks["PRODUCT NAME"] == selected_product].iloc[0]
+        prod_id = selected_row.get("PRODUCT ID", "")
 
         if st.button("Confirm Sale", type="primary"):
-            current_row = df_stocks[df_stocks["PRODUCT NAME"] == selected_product].iloc[0]
-            current_stock = int(current_row["STOCK"])
-            stock_after_sale = current_stock - int(qty_sold)
-
             payload = {
                 "action": "recordSale",
-                "date": datetime.now().strftime("%Y-%m-%d"),
-                "time": datetime.now().strftime("%H:%M:%S"),
+                "date": datetime.now().strftime("%d/%m/%Y"),
+                "time": datetime.now().strftime("%H:%M"),
+                "productId": prod_id,
                 "productName": selected_product,
-                "stockAfterSale": stock_after_sale,
-                "notAvailable": not_available
+                "quantity": int(qty_sold)
             }
 
             res = requests.post(WEB_APP_URL, json=payload)
             if res.status_code == 200:
-                st.success(f"Sale recorded! Stock updated for {selected_product}: {stock_after_sale}")
+                st.success(f"Sale recorded! Subtracted {qty_sold} from {selected_product}.")
                 st.cache_data.clear()
                 st.rerun()
             else:
@@ -57,27 +56,27 @@ with tab1:
 
 with tab2:
     st.subheader("Add Incoming Stock (New Purchase)")
-    if not df_stocks.empty and "PRODUCT NAME" in df_stocks.columns:
-        product_list_p = df_stocks["PRODUCT NAME"].tolist()
-        selected_product_p = st.selectbox("Select Product (Purchase)", product_list_p, key="purchase_prod")
-        qty_purchased = st.number_input("Quantity Purchased / Added", min_value=1, value=1, step=1, key="purchase_qty")
+    new_prod_id = st.text_input("Product ID", value="balu 033")
+    new_prod_name = st.text_input("Product Name")
+    qty_purchased = st.number_input("Quantity Purchased", min_value=1, value=1, step=1, key="purchase_qty")
 
-        if st.button("Add Stock", type="primary"):
-            payload = {
-                "action": "recordPurchase",
-                "date": datetime.now().strftime("%Y-%m-%d"),
-                "time": datetime.now().strftime("%H:%M:%S"),
-                "productName": selected_product_p,
-                "qtyPurchased": int(qty_purchased)
-            }
+    if st.button("Add Stock", type="primary"):
+        payload = {
+            "action": "recordPurchase",
+            "date": datetime.now().strftime("%d/%m/%Y"),
+            "time": datetime.now().strftime("%H:%M"),
+            "productId": new_prod_id,
+            "productName": new_prod_name,
+            "quantity": int(qty_purchased)
+        }
 
-            res = requests.post(WEB_APP_URL, json=payload)
-            if res.status_code == 200:
-                st.success(f"Successfully added {qty_purchased} units to {selected_product_p}!")
-                st.cache_data.clear()
-                st.rerun()
-            else:
-                st.error("Failed to connect to Google Sheet.")
+        res = requests.post(WEB_APP_URL, json=payload)
+        if res.status_code == 200:
+            st.success(f"Successfully added {qty_purchased} units of {new_prod_name}!")
+            st.cache_data.clear()
+            st.rerun()
+        else:
+            st.error("Failed to connect to Google Sheet.")
 
 st.markdown("---")
 st.subheader("📊 Live Stocks Inventory")
