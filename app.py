@@ -8,7 +8,7 @@ st.set_page_config(
     page_title="Bavesh Inventory", page_icon="🌿", layout="wide"
 )
 
-# Professional CSS to enforce Light Theme, center text, and hide top toolbar
+# Professional CSS to enforce Light Theme, center table contents, and expand table width to cover the screen
 st.markdown(
     """
     <style>
@@ -47,6 +47,30 @@ st.markdown(
     }
     h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
         display: none !important;
+    }
+
+    /* Force full-width responsive HTML table with centered text */
+    table {
+        width: 100% !important;
+        margin: auto;
+        border-collapse: collapse;
+        background-color: white;
+        color: #1b4d3e;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+    th {
+        background-color: #1b4d3e !important;
+        color: white !important;
+        text-align: center !important;
+        padding: 12px;
+        font-size: 16px;
+    }
+    td {
+        text-align: center !important;
+        padding: 10px;
+        border-bottom: 1px solid #e0f2e9;
+        font-size: 15px;
     }
     </style>
 """,
@@ -193,23 +217,8 @@ with tab2:
 st.markdown("---")
 st.subheader("Live Stocks Inventory")
 if not df_stocks.empty:
-  # Apply Pandas Styler to center-align both headers and data cells
-  styled_df = (
-      df_stocks.style.set_properties(**{"text-align": "center"})
-      .set_table_styles(
-          [
-              {
-                  "selector": "th",
-                  "props": [
-                      ("text-align", "center"),
-                      ("background-color", "#1b4d3e"),
-                      ("color", "white"),
-                  ],
-              }
-          ]
-      )
-      .hide(axis="index")
-  )
-  st.markdown(styled_df.to_html(), unsafe_allow_html=True)
+  # Render standard HTML table to ensure 100% width coverage across the screen
+  html_table = df_stocks.to_html(index=False, classes="styled-table")
+  st.markdown(html_table, unsafe_allow_html=True)
 else:
   st.info("Loading stock data from Google Sheet...")
