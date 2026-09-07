@@ -9,22 +9,22 @@ st.set_page_config(
     page_title="Bavesh Inventory", page_icon="🌿", layout="wide"
 )
 
-# Professional CSS to enforce Dark Violet/White theme, full-width table coverage, and centered text
+# Professional Clean Light Theme CSS
 st.markdown(
     """
     <style>
     .stApp {
-        background-color: #2b1b3d !important;
-        color: #f3f0f7 !important;
+        background-color: #f8f9fa !important;
+        color: #212529 !important;
     }
     
     .stTextInput label, .stSelectbox label, .stNumberInput label {
-        color: #f3f0f7 !important;
+        color: #212529 !important;
         font-weight: 600 !important;
     }
 
     .stButton>button {
-        background-color: #7b2cbf !important;
+        background-color: #0d6efd !important;
         color: white !important;
         font-weight: 600;
         font-size: 15px;
@@ -33,7 +33,7 @@ st.markdown(
         border: none;
     }
     .stButton>button:hover {
-        background-color: #9d4edd !important;
+        background-color: #0b5ed7 !important;
         color: white !important;
     }
     
@@ -43,7 +43,7 @@ st.markdown(
     .stDeployButton {display: none;}
     
     h1, h2, h3, h4, h5, h6 {
-        color: #f3f0f7 !important;
+        color: #212529 !important;
         font-weight: 700 !important;
         letter-spacing: -0.025em;
     }
@@ -55,13 +55,14 @@ st.markdown(
         width: 100% !important;
         margin: auto;
         border-collapse: collapse;
-        background-color: #3c2a54;
-        color: #f3f0f7;
+        background-color: #ffffff;
+        color: #212529;
         border-radius: 6px;
         overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
     th {
-        background-color: #5a189a !important;
+        background-color: #343a40 !important;
         color: white !important;
         text-align: center !important;
         padding: 12px;
@@ -70,9 +71,9 @@ st.markdown(
     td {
         text-align: center !important;
         padding: 10px;
-        border-bottom: 1px solid #4a3468;
+        border-bottom: 1px solid #dee2e6;
         font-size: 15px;
-        color: #f3f0f7 !important;
+        color: #212529 !important;
     }
     </style>
 """,
@@ -86,7 +87,7 @@ if "authenticated" not in st.session_state:
 
 if not st.session_state["authenticated"]:
   st.markdown(
-      "<h2 style='color: #e0aaff; font-size: 1.8rem;'>Bavesh System Login</h2>",
+      "<h2 style='color: #343a40; font-size: 1.8rem;'>Bavesh System Login</h2>",
       unsafe_allow_html=True,
   )
   st.markdown("Please enter your credentials to access the inventory system.")
@@ -106,7 +107,7 @@ if not st.session_state["authenticated"]:
   st.stop()
 
 st.markdown(
-    "<h1 style='text-align: center; color: #e0aaff; font-size: 2.2rem;"
+    "<h1 style='text-align: center; color: #343a40; font-size: 2.2rem;"
     " margin-bottom: 0;'>Bavesh Inventory & Sales Management System</h1>",
     unsafe_allow_html=True,
 )
@@ -130,7 +131,6 @@ tab1, tab2 = st.tabs(["Record Multi-Item Sale", "Add New Product / Purchase"])
 with tab1:
   st.subheader("Process a Multi-Item Customer Sale")
   if not df_stocks.empty and "PRODUCT NAME" in df_stocks.columns:
-    # Create formatted labels displaying Product Name alongside its current stock level
     df_stocks["DISPLAY_LABEL"] = (
         df_stocks["PRODUCT NAME"]
         + " (Stock: "
@@ -215,7 +215,7 @@ with tab1:
 
       grand_total = cart_df["Total Price"].sum()
       st.markdown(
-          f"<h3 style='text-align: right; color: #ff758f;'>Grand Total:"
+          f"<h3 style='text-align: right; color: #d9534f;'>Grand Total:"
           f" ₹{grand_total:,.2f}</h3>",
           unsafe_allow_html=True,
       )
@@ -302,7 +302,6 @@ with tab2:
 st.markdown("---")
 st.subheader("Live Stocks Inventory")
 if not df_stocks.empty:
-  # Drop helper column before rendering the stock table
   display_df = df_stocks.drop(columns=["DISPLAY_LABEL"], errors="ignore")
   html_table = display_df.to_html(index=False, classes="styled-table")
   st.markdown(html_table, unsafe_allow_html=True)
