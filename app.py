@@ -8,7 +8,7 @@ st.set_page_config(
     page_title="Bavesh Inventory", page_icon="🌿", layout="wide"
 )
 
-# Professional CSS to enforce Light Theme, center table contents, and expand table width to cover the screen
+# Professional CSS to enforce Light Theme, full-width table coverage, and centered text
 st.markdown(
     """
     <style>
@@ -49,7 +49,6 @@ st.markdown(
         display: none !important;
     }
 
-    /* Force full-width responsive HTML table with centered text */
     table {
         width: 100% !important;
         margin: auto;
@@ -123,57 +122,109 @@ def get_stocks():
 stocks_data = get_stocks()
 df_stocks = pd.DataFrame(stocks_data)
 
-tab1, tab2 = st.tabs(["Record Sale", "Add New Product / Purchase"])
+tab1, tab2 = st.tabs(["Record Multi-Item Sale", "Add New Product / Purchase"])
 
 with tab1:
-  st.subheader("Process a Customer Sale")
+  st.subheader("Process a Multi-Item Customer Sale")
   if not df_stocks.empty and "PRODUCT NAME" in df_stocks.columns:
     product_list = df_stocks["PRODUCT NAME"].dropna().tolist()
 
-    selected_product = st.selectbox(
-        "Search & Select Product (Type to filter)",
-        options=product_list,
-        key="sale_prod_name",
-    )
+    if "cart" not in st.session_state:
+      st.session_state["cart"] = []
 
-    matched_row = df_stocks[df_stocks["PRODUCT NAME"] == selected_product]
+    col1, col2, col3 = st.columns([2, 1, 1])
+    with col1:
+      selected_product = st.selectbox(
+          "Select Product", options=product_list, key="cart_product"
+      )
+    with col2:
+      qty_sold = st.number_input(
+          "Quantity", min_value=1, value=1, step=1, key="cart_qty"
+      )
+    with col3:
+      st.markdown("<br>", unsafe_allow_html=True)
+      if st.button("Add to Bill"):
+        matched_row = df_stocks[df_stocks["PRODUCT NAME"] == selected_product]
+        unit_price = (
+            float(matched_row["PRICE"].values[0])
+            if not matched_row.empty and "PRICE" in matched_row.columns
+            else 0.0
+        )
+        total_price = qty_sold * unit_price
 
-    if not matched_row.empty:
-      st.info(
-          f"Selected: **{selected_product}** | Available Stock: **"
-          f" {matched_row['STOCK'].values[0] if 'STOCK' in matched_row.columns else 'N/A'}"
-          "**"
+        # Check if product already in cart, update quantity
+        existing_item = next(
+            (
+                item
+                for item in st.session_state["cart"]
+                if item["Product"] == selected_product
+            ),
+            None,
+        )
+        if existing_item:
+          existing_item["Quantity"] += qty_sold
+          existing_item["Total Price"] = (
+              existing_item["Quantity"] * existing_item["Unit Price"]
+          )
+        else:
+          st.session_state["cart"].append({
+              "Product": selected_product,
+              "Quantity": qty_sold,
+              "Unit Price": unit_price,
+              "Total Price": total_price,
+          })
+        st.success(f"Added {selected_product} to cart!")
+        st.rerun()
+
+    if st.session_state["cart"]:
+      st.markdown("### 🛒 Current Bill Items")
+      cart_df = pd.DataFrame(st.session_state["cart"])
+      st.markdown(
+          cart_df.to_html(index=False, classes="styled-table"),
+          unsafe_allow_html=True,
       )
 
-    qty_sold = st.number_input(
-        "Quantity Sold", min_value=1, value=1, step=1, key="sale_qty"
-    )
-    not_available = st.text_input("Customer Wanted (Not Available Product)")
+      grand_total = cart_df["Total Price"].sum()
+      st.markdown(
+          f"<h3 style='text-align: right; color: #cc2929;'>Grand Total:"
+          f" ₹{grand_total:,.2f}</h3>",
+          unsafe_allow_html=True,
+      )
 
-    if st.button("Confirm Sale", type="primary"):
-      if selected_product:
-        payload = {
-            "action": "recordSale",
-            "date": datetime.now().strftime("%Y-%m-%d"),
-            "time": datetime.now().strftime("%H:%M:%S"),
-            "productName": selected_product,
-            "qtySold": int(qty_sold),
-            "notAvailable": not_available,
-        }
+      not_available = st.text_input("Customer Wanted (Not Available Product)")
 
-        res = requests.post(WEB_APP_URL, json=payload)
-        res_json = res.json() if res.status_code == 200 else {}
-
-        if res.status_code == 200 and res_json.get("status") == "success":
-          st.success(
-              f"Sale recorded and stock reduced for {selected_product} successfully!"
-          )
+      col_clear, col_confirm = st.columns(2)
+      with col_clear:
+        if st.button("Clear Bill"):
+          st.session_state["cart"] = []
           st.rerun()
-        else:
-          err_msg = res_json.get("message", "Unknown error")
-          st.error(f"Failed to update Google Sheet: {err_msg}")
-      else:
-        st.error("Please select a valid product.")
+      with col_confirm:
+        if st.button("Confirm & Complete Sale", type="primary"):
+          success_all = True
+          for item in st.session_state["cart"]:
+            payload = {
+                "action": "recordSale",
+                "date": datetime.now().strftime("%Y-%m-%d"),
+                "time": datetime.now().strftime("%H:%M:%S"),
+                "productName": item["Product"],
+                "qtySold": int(item["Quantity"]),
+                "notAvailable": not_available,
+            }
+            res = requests.post(WEB_APP_URL, json=payload)
+            if (
+                res.status_code != 200
+                or res.json().get("status") != "success"
+            ):
+              success_all = False
+
+          if success_all:
+            st.success("All items billed and stocks updated successfully!")
+            st.session_state["cart"] = []
+            st.rerun()
+          else:
+            st.error("Some items failed to update in Google Sheets.")
+    else:
+      st.info("No items added to the bill yet.")
   else:
     st.warning("No products found in stock table.")
 
@@ -217,7 +268,6 @@ with tab2:
 st.markdown("---")
 st.subheader("Live Stocks Inventory")
 if not df_stocks.empty:
-  # Render standard HTML table to ensure 100% width coverage across the screen
   html_table = df_stocks.to_html(index=False, classes="styled-table")
   st.markdown(html_table, unsafe_allow_html=True)
 else:
