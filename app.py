@@ -13,7 +13,7 @@ st.title("📦 Store Inventory & Sales Management System")
 st.markdown("---")
 
 
-@st.cache_data(ttl=2)
+@st.cache_data(ttl=0)
 def get_stocks():
   try:
     response = requests.get(WEB_APP_URL)
