@@ -13,7 +13,6 @@ st.set_page_config(
 st.markdown(
     """
     <style>
-    /* Remove default Streamlit top blank space */
     header[data-testid="stHeader"] {
         display: none !important;
     }
@@ -30,14 +29,12 @@ st.markdown(
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
     
-    /* Input Field Labels */
     .stTextInput label, .stSelectbox label, .stNumberInput label {
         color: #495057 !important;
         font-weight: 600 !important;
         font-size: 14px !important;
     }
 
-    /* Enterprise Primary Buttons */
     .stButton>button {
         background-color: #2b6cb0 !important;
         color: white !important;
@@ -54,12 +51,10 @@ st.markdown(
         color: white !important;
     }
     
-    /* Hide Streamlit Chrome */
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     .stDeployButton {display: none;}
     
-    /* Headings */
     h1, h2, h3, h4, h5, h6 {
         color: #1a202c !important;
         font-weight: 700 !important;
@@ -69,7 +64,6 @@ st.markdown(
         display: none !important;
     }
 
-    /* Modern Table Formatting */
     table {
         width: 100% !important;
         margin: auto;
@@ -135,7 +129,6 @@ if not st.session_state["authenticated"]:
         st.error("Invalid username or password.")
   st.stop()
 
-# Header Box
 st.markdown(
     """
     <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 20px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 18px;">
@@ -165,12 +158,32 @@ tab1, tab2 = st.tabs(["🛒 Multi-Item Billing Counter", "📦 Product & Stock M
 with tab1:
   st.subheader("Point of Sale Billing")
   if not df_stocks.empty and "PRODUCT NAME" in df_stocks.columns:
-    df_stocks["DISPLAY_LABEL"] = (
-        df_stocks["PRODUCT NAME"]
-        + " (Available Stock: "
-        + df_stocks["STOCK"].astype(str)
-        + ")"
+    # Build display option including Product Code and Product Name and Stock
+    # Adjust column names based on your sheet structure ('PRODUCT ID' or 'PRODUCT CODE')
+    id_col = (
+        "PRODUCT ID"
+        if "PRODUCT ID" in df_stocks.columns
+        else ("PRODUCT CODE" if "PRODUCT CODE" in df_stocks.columns else None)
     )
+
+    if id_col:
+      df_stocks["DISPLAY_LABEL"] = (
+          "["
+          + df_stocks[id_col].astype(str)
+          + "] "
+          + df_stocks["PRODUCT NAME"]
+          + " (Stock: "
+          + df_stocks["STOCK"].astype(str)
+          + ")"
+      )
+    else:
+      df_stocks["DISPLAY_LABEL"] = (
+          df_stocks["PRODUCT NAME"]
+          + " (Stock: "
+          + df_stocks["STOCK"].astype(str)
+          + ")"
+      )
+
     product_options = df_stocks["DISPLAY_LABEL"].tolist()
     product_name_mapping = dict(
         zip(df_stocks["DISPLAY_LABEL"], df_stocks["PRODUCT NAME"])
@@ -182,7 +195,7 @@ with tab1:
     col1, col2, col3 = st.columns([2, 1, 1], gap="medium")
     with col1:
       selected_display = st.selectbox(
-          "Search & Select Product",
+          "Search & Select Product (Code & Name)",
           options=product_options,
           key="cart_product",
       )
