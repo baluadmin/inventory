@@ -8,7 +8,7 @@ st.set_page_config(
     page_title="Bavesh Inventory", page_icon="🌿", layout="wide"
 )
 
-# Custom CSS for Professional Green Theme with Red Accents
+# Custom CSS for Professional Green Theme with Red Accents & Hiding Header Anchor Links
 st.markdown(
     """
     <style>
@@ -24,6 +24,10 @@ st.markdown(
     .stButton>button:hover {
         background-color: #a31f1f;
         color: white;
+    }
+    /* Removes the link/anchor symbol next to headers */
+    h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
+        display: none !important;
     }
     </style>
 """,
@@ -58,7 +62,7 @@ if not st.session_state["authenticated"]:
         st.error("Invalid username or password.")
   st.stop()
 
-# Main App Header without emojis or link symbols
+# Main App Header without link symbols
 st.markdown(
     "<h1 style='text-align: center; color: #1b4d3e;'>Bavesh Inventory & Sales"
     " Management System</h1>",
