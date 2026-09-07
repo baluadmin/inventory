@@ -32,7 +32,7 @@ with tab1:
   if not df_stocks.empty and "PRODUCT NAME" in df_stocks.columns:
     product_list = df_stocks["PRODUCT NAME"].tolist()
     selected_product = st.selectbox(
-        "Select Product (Sale)", product_list, key="sale_prod"
+        "Select Product", product_list, key="sale_prod"
     )
     qty_sold = st.number_input(
         "Quantity Sold", min_value=1, value=1, step=1, key="sale_qty"
@@ -53,7 +53,7 @@ with tab1:
       res_json = res.json() if res.status_code == 200 else {}
 
       if res.status_code == 200 and res_json.get("status") == "success":
-        st.success(f"Sale recorded! Stock reduced for {selected_product}.")
+        st.success(f"Sale recorded successfully for {selected_product}!")
         st.cache_data.clear()
         st.rerun()
       else:
@@ -67,14 +67,10 @@ with tab2:
   if not df_stocks.empty and "PRODUCT NAME" in df_stocks.columns:
     product_list_p = df_stocks["PRODUCT NAME"].tolist()
     selected_product_p = st.selectbox(
-        "Select Product (Purchase)", product_list_p, key="purchase_prod"
+        "Select Product", product_list_p, key="purchase_prod"
     )
     qty_purchased = st.number_input(
-        "Quantity Purchased / Added",
-        min_value=1,
-        value=1,
-        step=1,
-        key="purchase_qty",
+        "Quantity Purchased", min_value=1, value=1, step=1, key="purchase_qty"
     )
 
     if st.button("Add Stock", type="primary"):
