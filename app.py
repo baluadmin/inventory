@@ -8,23 +8,20 @@ st.set_page_config(
     page_title="Bavesh Inventory", page_icon="🌿", layout="wide"
 )
 
-# Professional CSS to force Light Theme colors, hide top-right menu/toolbar, and clean typography
+# Professional CSS to center table text, force Light Theme, and hide top toolbar
 st.markdown(
     """
     <style>
-    /* Force Light Mode Color Scheme across the entire app */
     .stApp {
         background-color: #f0f7f2 !important;
         color: #1b4d3e !important;
     }
     
-    /* Override Streamlit container and text elements for consistent light mode styling */
     .stTextInput label, .stSelectbox label, .stNumberInput label {
         color: #1b4d3e !important;
         font-weight: 600 !important;
     }
 
-    /* Professional Button Styling */
     .stButton>button {
         background-color: #cc2929 !important;
         color: white !important;
@@ -39,19 +36,23 @@ st.markdown(
         color: white !important;
     }
     
-    /* Hide Top-Right Toolbar (Deploy, Star, Fork, Menu icons) */
     #MainMenu {visibility: hidden;}
     header {visibility: hidden;}
     footer {visibility: hidden;}
     .stDeployButton {display: none;}
     
-    /* Clean Headings & Remove Anchor Links */
     h1, h2, h3 {
         font-weight: 700 !important;
         letter-spacing: -0.025em;
     }
     h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
         display: none !important;
+    }
+
+    /* Center text inside dataframes / tables */
+    div[data-testid="stTable"] td, div[data-testid="stTable"] th,
+    .stDataFrame td, .stDataFrame th {
+        text-align: center !important;
     }
     </style>
 """,
@@ -133,7 +134,6 @@ with tab1:
 
     if st.button("Confirm Sale", type="primary"):
       if selected_product:
-        # Correct local date and time generation matching IST timezone
         payload = {
             "action": "recordSale",
             "date": datetime.now().strftime("%Y-%m-%d"),
