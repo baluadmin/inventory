@@ -8,13 +8,24 @@ st.set_page_config(
     page_title="Bavesh Inventory", page_icon="🌿", layout="wide"
 )
 
-# Custom CSS for Professional Green Theme with Red Accents & Hiding Header Anchor Links
+# Professional Adaptive Theme CSS (Auto Light/Dark Mode)
 st.markdown(
     """
     <style>
+    /* Default Light Mode Palette */
     .stApp {
         background-color: #f0f7f2;
+        color: #1b4d3e;
     }
+    
+    /* Auto Switch for Dark Mode */
+    @media (prefers-color-scheme: dark) {
+        .stApp {
+            background-color: #121f17;
+            color: #e0f2e9;
+        }
+    }
+
     .stButton>button {
         background-color: #cc2929;
         color: white;
@@ -25,7 +36,7 @@ st.markdown(
         background-color: #a31f1f;
         color: white;
     }
-    /* Removes the link/anchor symbol next to headers */
+    
     h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
         display: none !important;
     }
@@ -36,14 +47,12 @@ st.markdown(
 
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwU4S0brHSf2NUXolXiPyCfNtczKmho-Q2K_NHXm8GYTT54pbA7pXhDg8PbBJIh_ejqNQ/exec"
 
-# Initialize session state for authentication
 if "authenticated" not in st.session_state:
   st.session_state["authenticated"] = False
 
-# Login Screen
 if not st.session_state["authenticated"]:
   st.markdown(
-      "<h2 style='color: #1b4d3e;'>Bavesh System Login</h2>",
+      "<h2 style='color: #2e7d32;'>Bavesh System Login</h2>",
       unsafe_allow_html=True,
   )
   st.markdown("Please enter your credentials to access the inventory system.")
@@ -62,9 +71,8 @@ if not st.session_state["authenticated"]:
         st.error("Invalid username or password.")
   st.stop()
 
-# Main App Header without link symbols
 st.markdown(
-    "<h1 style='text-align: center; color: #1b4d3e;'>Bavesh Inventory & Sales"
+    "<h1 style='text-align: center; color: #2e7d32;'>Bavesh Inventory & Sales"
     " Management System</h1>",
     unsafe_allow_html=True,
 )
@@ -83,7 +91,7 @@ def get_stocks():
 stocks_data = get_stocks()
 df_stocks = pd.DataFrame(stocks_data)
 
-tab1, tab2 = st.tabs(["⚡ Record Sale", "📥 Add New Product / Purchase"])
+tab1, tab2 = st.tabs(["Record Sale", "Add New Product / Purchase"])
 
 with tab1:
   st.subheader("Process a Customer Sale")
