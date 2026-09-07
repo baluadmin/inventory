@@ -25,12 +25,12 @@ def get_stocks():
 stocks_data = get_stocks()
 df_stocks = pd.DataFrame(stocks_data)
 
-tab1, tab2 = st.tabs(["⚡ Record Sale", "📥 Add New Purchase"])
+tab1, tab2 = st.tabs(["⚡ Record Sale", "📥 Add New Product / Purchase"])
 
 with tab1:
   st.subheader("Process a Customer Sale")
   if not df_stocks.empty and "PRODUCT NAME" in df_stocks.columns:
-    product_list = df_stocks["PRODUCT NAME"].tolist()
+    product_list = df_stocks["PRODUCT NAME"].dropna().tolist()
     selected_product = st.selectbox(
         "Select Product", product_list, key="sale_prod"
     )
@@ -65,23 +65,26 @@ with tab1:
     st.warning("No products found in stock table.")
 
 with tab2:
-  st.subheader("Add Incoming Stock (New Purchase)")
-  if not df_stocks.empty and "PRODUCT NAME" in df_stocks.columns:
-    product_list_p = df_stocks["PRODUCT NAME"].tolist()
-    selected_product_p = st.selectbox(
-        "Select Product", product_list_p, key="purchase_prod"
-    )
-    qty_purchased = st.number_input(
-        "Quantity Purchased", min_value=1, value=1, step=1, key="purchase_qty"
-    )
+  st.subheader("Add New Product or Restock Purchase")
+  new_prod_id = st.text_input("Product ID (e.g., 101)")
+  new_prod_name = st.text_input("Product Name (Type new or existing)")
+  qty_purchased = st.number_input(
+      "Quantity Purchased", min_value=1, value=1, step=1, key="p_qty"
+  )
+  price = st.number_input(
+      "Price", min_value=0.0, value=0.0, step=1.0, key="p_price"
+  )
 
-    if st.button("Add Stock", type="primary"):
+  if st.button("Submit Purchase / Add Stock", type="primary"):
+    if new_prod_name.strip():
       payload = {
           "action": "recordPurchase",
           "date": datetime.now().strftime("%Y-%m-%d"),
           "time": datetime.now().strftime("%H:%M:%S"),
-          "productName": selected_product_p,
+          "productId": new_prod_id.strip(),
+          "productName": new_prod_name.strip(),
           "qtyPurchased": int(qty_purchased),
+          "price": float(price),
       }
 
       res = requests.post(WEB_APP_URL, json=payload)
@@ -89,13 +92,15 @@ with tab2:
 
       if res.status_code == 200 and res_json.get("status") == "success":
         st.success(
-            f"Successfully added {qty_purchased} units to {selected_product_p}!"
+            f"Successfully added/updated purchase for {new_prod_name}!"
         )
         st.cache_data.clear()
         st.rerun()
       else:
         err_msg = res_json.get("message", "Unknown error")
         st.error(f"Failed to update Google Sheet: {err_msg}")
+    else:
+      st.error("Please enter a valid Product Name.")
 
 st.markdown("---")
 st.subheader("📊 Live Stocks Inventory")
