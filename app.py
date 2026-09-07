@@ -53,7 +53,7 @@ with tab1:
       res_json = res.json() if res.status_code == 200 else {}
 
       if res.status_code == 200 and res_json.get("status") == "success":
-        st.success(f"Sale recorded successfully for {selected_product}!")
+        st.success(f"Sale recorded! Stock reduced for {selected_product}.")
         st.cache_data.clear()
         st.rerun()
       else:
