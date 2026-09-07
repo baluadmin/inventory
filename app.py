@@ -5,7 +5,19 @@ import requests
 import streamlit as st
 
 st.set_page_config(
-    page_title="Store Inventory Dashboard", page_icon="📦", layout="wide"
+    page_title="Bavesh Store Inventory", page_icon="📦", layout="wide"
+)
+
+# Custom CSS for Light Red Background
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background-color: #ffe6e6;
+    }
+    </style>
+""",
+    unsafe_allow_html=True,
 )
 
 WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwU4S0brHSf2NUXolXiPyCfNtczKmho-Q2K_NHXm8GYTT54pbA7pXhDg8PbBJIh_ejqNQ/exec"
@@ -16,7 +28,7 @@ if "authenticated" not in st.session_state:
 
 # Login Screen
 if not st.session_state["authenticated"]:
-  st.title("🔐 System Login")
+  st.title("🔐 Bavesh Store Login")
   st.markdown("Please enter your credentials to access the inventory system.")
 
   with st.form("login_form"):
@@ -31,10 +43,14 @@ if not st.session_state["authenticated"]:
         st.rerun()
       else:
         st.error("Invalid username or password.")
-  st.stop()  # Stop execution here if not logged in
+  st.stop()
 
-# Main App (Runs only after successful login)
-st.title("📦 Store Inventory & Sales Management System")
+# Main App Header with Shop Name
+st.markdown(
+    "<h1 style='text-align: center; color: #990000;'>🏪 Bavesh Store Inventory"
+    " & Sales Management System</h1>",
+    unsafe_allow_html=True,
+)
 st.markdown("---")
 
 
