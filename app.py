@@ -30,42 +30,22 @@ tab1, tab2 = st.tabs(["⚡ Record Sale", "📥 Add New Product / Purchase"])
 with tab1:
   st.subheader("Process a Customer Sale")
   if not df_stocks.empty and "PRODUCT NAME" in df_stocks.columns:
-    # Option to search/select by Product ID or Name
-    search_mode = st.radio(
-        "Search Product By:", ["Product Name", "Product ID"], horizontal=True
+    # Streamlit's selectbox natively filters options as you type (e.g., typing 'b' filters items)
+    product_list = df_stocks["PRODUCT NAME"].dropna().tolist()
+
+    selected_product = st.selectbox(
+        "Search & Select Product (Type to filter)",
+        options=product_list,
+        key="sale_prod_name",
     )
 
-    if search_mode == "Product Name":
-      product_list = df_stocks["PRODUCT NAME"].dropna().tolist()
-      selected_product = st.selectbox(
-          "Select Product Name", product_list, key="sale_prod_name"
-      )
-      matched_row = df_stocks[df_stocks["PRODUCT NAME"] == selected_product]
-    else:
-      prod_id_list = (
-          df_stocks["PRODUCT ID"].dropna().astype(str).tolist()
-          if "PRODUCT ID" in df_stocks.columns
-          else []
-      )
-      selected_prod_id = st.selectbox(
-          "Select Product ID / Code", prod_id_list, key="sale_prod_id"
-      )
-      matched_row = df_stocks[
-          df_stocks["PRODUCT ID"].astype(str) == str(selected_prod_id)
-      ]
-      selected_product = (
-          matched_row["PRODUCT NAME"].values[0]
-          if not matched_row.empty
-          else ""
-      )
+    matched_row = df_stocks[df_stocks["PRODUCT NAME"] == selected_product]
 
     if not matched_row.empty:
-      current_stock_val = matched_row["PRODUCT ID"].values[
-          0
-      ]  # reference check
       st.info(
-          f"Selected: **{selected_product}** (Available Stock:"
-          f" {matched_row['STOCK'].values[0] if 'STOCK' in matched_row.columns else 'N/A'})"
+          f"Selected: **{selected_product}** | Available Stock: **"
+          f" {matched_row['STOCK'].values[0] if 'STOCK' in matched_row.columns else 'N/A'}"
+          "**"
       )
 
     qty_sold = st.number_input(
