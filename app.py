@@ -8,17 +8,20 @@ st.set_page_config(
     page_title="Bavesh Inventory", page_icon="🌿", layout="wide"
 )
 
-# Professional Adaptive Theme CSS (Auto Light/Dark Mode)
+# Professional Typography and Adaptive Theme CSS
 st.markdown(
     """
     <style>
-    /* Default Light Mode Palette */
+    /* Global Font and Colors */
+    html, body, [class*="st-"] {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    
     .stApp {
         background-color: #f0f7f2;
         color: #1b4d3e;
     }
     
-    /* Auto Switch for Dark Mode */
     @media (prefers-color-scheme: dark) {
         .stApp {
             background-color: #121f17;
@@ -26,10 +29,14 @@ st.markdown(
         }
     }
 
+    /* Professional Button Styling */
     .stButton>button {
         background-color: #cc2929;
         color: white;
-        border-radius: 4px;
+        font-weight: 600;
+        font-size: 15px;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
         border: none;
     }
     .stButton>button:hover {
@@ -37,6 +44,11 @@ st.markdown(
         color: white;
     }
     
+    /* Clean Headings & Remove Anchor Links */
+    h1, h2, h3 {
+        font-weight: 700 !important;
+        letter-spacing: -0.025em;
+    }
     h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
         display: none !important;
     }
@@ -52,7 +64,7 @@ if "authenticated" not in st.session_state:
 
 if not st.session_state["authenticated"]:
   st.markdown(
-      "<h2 style='color: #2e7d32;'>Bavesh System Login</h2>",
+      "<h2 style='color: #2e7d32; font-size: 1.8rem;'>Bavesh System Login</h2>",
       unsafe_allow_html=True,
   )
   st.markdown("Please enter your credentials to access the inventory system.")
@@ -72,8 +84,8 @@ if not st.session_state["authenticated"]:
   st.stop()
 
 st.markdown(
-    "<h1 style='text-align: center; color: #2e7d32;'>Bavesh Inventory & Sales"
-    " Management System</h1>",
+    "<h1 style='text-align: center; color: #1b4d3e; font-size: 2.2rem;"
+    " margin-bottom: 0;'>Bavesh Inventory & Sales Management System</h1>",
     unsafe_allow_html=True,
 )
 st.markdown("---")
