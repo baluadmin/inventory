@@ -9,22 +9,22 @@ st.set_page_config(
     page_title="Bavesh Inventory", page_icon="🌿", layout="wide"
 )
 
-# Professional CSS to enforce Light Theme, full-width table coverage, and centered text
+# Professional CSS to enforce Dark Violet/White theme, full-width table coverage, and centered text
 st.markdown(
     """
     <style>
     .stApp {
-        background-color: #f0f7f2 !important;
-        color: #1b4d3e !important;
+        background-color: #2b1b3d !important;
+        color: #f3f0f7 !important;
     }
     
     .stTextInput label, .stSelectbox label, .stNumberInput label {
-        color: #1b4d3e !important;
+        color: #f3f0f7 !important;
         font-weight: 600 !important;
     }
 
     .stButton>button {
-        background-color: #cc2929 !important;
+        background-color: #7b2cbf !important;
         color: white !important;
         font-weight: 600;
         font-size: 15px;
@@ -33,7 +33,7 @@ st.markdown(
         border: none;
     }
     .stButton>button:hover {
-        background-color: #a31f1f !important;
+        background-color: #9d4edd !important;
         color: white !important;
     }
     
@@ -42,7 +42,8 @@ st.markdown(
     footer {visibility: hidden;}
     .stDeployButton {display: none;}
     
-    h1, h2, h3 {
+    h1, h2, h3, h4, h5, h6 {
+        color: #f3f0f7 !important;
         font-weight: 700 !important;
         letter-spacing: -0.025em;
     }
@@ -54,13 +55,13 @@ st.markdown(
         width: 100% !important;
         margin: auto;
         border-collapse: collapse;
-        background-color: white;
-        color: #1b4d3e;
+        background-color: #3c2a54;
+        color: #f3f0f7;
         border-radius: 6px;
         overflow: hidden;
     }
     th {
-        background-color: #1b4d3e !important;
+        background-color: #5a189a !important;
         color: white !important;
         text-align: center !important;
         padding: 12px;
@@ -69,8 +70,9 @@ st.markdown(
     td {
         text-align: center !important;
         padding: 10px;
-        border-bottom: 1px solid #e0f2e9;
+        border-bottom: 1px solid #4a3468;
         font-size: 15px;
+        color: #f3f0f7 !important;
     }
     </style>
 """,
@@ -84,7 +86,7 @@ if "authenticated" not in st.session_state:
 
 if not st.session_state["authenticated"]:
   st.markdown(
-      "<h2 style='color: #2e7d32; font-size: 1.8rem;'>Bavesh System Login</h2>",
+      "<h2 style='color: #e0aaff; font-size: 1.8rem;'>Bavesh System Login</h2>",
       unsafe_allow_html=True,
   )
   st.markdown("Please enter your credentials to access the inventory system.")
@@ -104,7 +106,7 @@ if not st.session_state["authenticated"]:
   st.stop()
 
 st.markdown(
-    "<h1 style='text-align: center; color: #1b4d3e; font-size: 2.2rem;"
+    "<h1 style='text-align: center; color: #e0aaff; font-size: 2.2rem;"
     " margin-bottom: 0;'>Bavesh Inventory & Sales Management System</h1>",
     unsafe_allow_html=True,
 )
@@ -146,35 +148,50 @@ with tab1:
       st.markdown("<br>", unsafe_allow_html=True)
       if st.button("Add to Bill"):
         matched_row = df_stocks[df_stocks["PRODUCT NAME"] == selected_product]
-        unit_price = (
-            float(matched_row["PRICE"].values[0])
-            if not matched_row.empty and "PRICE" in matched_row.columns
-            else 0.0
-        )
-        total_price = qty_sold * unit_price
 
-        existing_item = next(
-            (
-                item
-                for item in st.session_state["cart"]
-                if item["Product"] == selected_product
-            ),
-            None,
-        )
-        if existing_item:
-          existing_item["Quantity"] += qty_sold
-          existing_item["Total Price"] = (
-              existing_item["Quantity"] * existing_item["Unit Price"]
+        if not matched_row.empty:
+          available_stock = (
+              int(matched_row["STOCK"].values[0])
+              if "STOCK" in matched_row.columns
+              else 0
           )
-        else:
-          st.session_state["cart"].append({
-              "Product": selected_product,
-              "Quantity": qty_sold,
-              "Unit Price": unit_price,
-              "Total Price": total_price,
-          })
-        st.success(f"Added {selected_product} to cart!")
-        st.rerun()
+          unit_price = (
+              float(matched_row["PRICE"].values[0])
+              if "PRICE" in matched_row.columns
+              else 0.0
+          )
+
+          # Check if requested quantity exceeds available stock
+          if qty_sold > available_stock:
+            st.warning(
+                f"⚠️ Warning: Requested quantity ({qty_sold}) exceeds available"
+                f" stock ({available_stock}) for {selected_product}!"
+            )
+
+          total_price = qty_sold * unit_price
+
+          existing_item = next(
+              (
+                  item
+                  for item in st.session_state["cart"]
+                  if item["Product"] == selected_product
+              ),
+              None,
+          )
+          if existing_item:
+            existing_item["Quantity"] += qty_sold
+            existing_item["Total Price"] = (
+                existing_item["Quantity"] * existing_item["Unit Price"]
+            )
+          else:
+            st.session_state["cart"].append({
+                "Product": selected_product,
+                "Quantity": qty_sold,
+                "Unit Price": unit_price,
+                "Total Price": total_price,
+            })
+          st.success(f"Added {selected_product} to cart!")
+          st.rerun()
 
     if st.session_state["cart"]:
       st.markdown("### Current Bill Items")
@@ -186,7 +203,7 @@ with tab1:
 
       grand_total = cart_df["Total Price"].sum()
       st.markdown(
-          f"<h3 style='text-align: right; color: #cc2929;'>Grand Total:"
+          f"<h3 style='text-align: right; color: #ff758f;'>Grand Total:"
           f" ₹{grand_total:,.2f}</h3>",
           unsafe_allow_html=True,
       )
