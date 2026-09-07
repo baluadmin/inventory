@@ -14,10 +14,9 @@ st.title("📦 Store Inventory & Sales Management System")
 st.markdown("---")
 
 
-@st.cache_data(ttl=0)
+# Removed @st.cache_data completely so it fetches fresh data every time
 def get_stocks():
   try:
-    # Append a timestamp to prevent Google Apps Script from caching the GET response
     fresh_url = f"{WEB_APP_URL}?t={time.time()}"
     response = requests.get(fresh_url)
     return response.json()
@@ -73,7 +72,6 @@ with tab1:
           st.success(
               f"Sale recorded and stock reduced for {selected_product} successfully!"
           )
-          st.cache_data.clear()
           st.rerun()
         else:
           err_msg = res_json.get("message", "Unknown error")
@@ -113,7 +111,6 @@ with tab2:
         st.success(
             f"Successfully added/updated purchase for {new_prod_name}!"
         )
-        st.cache_data.clear()
         st.rerun()
       else:
         err_msg = res_json.get("message", "Unknown error")
