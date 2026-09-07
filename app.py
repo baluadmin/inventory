@@ -130,16 +130,29 @@ tab1, tab2 = st.tabs(["Record Multi-Item Sale", "Add New Product / Purchase"])
 with tab1:
   st.subheader("Process a Multi-Item Customer Sale")
   if not df_stocks.empty and "PRODUCT NAME" in df_stocks.columns:
-    product_list = df_stocks["PRODUCT NAME"].dropna().tolist()
+    # Create formatted labels displaying Product Name alongside its current stock level
+    df_stocks["DISPLAY_LABEL"] = (
+        df_stocks["PRODUCT NAME"]
+        + " (Stock: "
+        + df_stocks["STOCK"].astype(str)
+        + ")"
+    )
+    product_options = df_stocks["DISPLAY_LABEL"].tolist()
+    product_name_mapping = dict(
+        zip(df_stocks["DISPLAY_LABEL"], df_stocks["PRODUCT NAME"])
+    )
 
     if "cart" not in st.session_state:
       st.session_state["cart"] = []
 
     col1, col2, col3 = st.columns([2, 1, 1])
     with col1:
-      selected_product = st.selectbox(
-          "Select Product", options=product_list, key="cart_product"
+      selected_display = st.selectbox(
+          "Select Product (with live stock)",
+          options=product_options,
+          key="cart_product",
       )
+      selected_product = product_name_mapping[selected_display]
     with col2:
       qty_sold = st.number_input(
           "Quantity", min_value=1, value=1, step=1, key="cart_qty"
@@ -161,7 +174,6 @@ with tab1:
               else 0.0
           )
 
-          # Check if requested quantity exceeds available stock
           if qty_sold > available_stock:
             st.warning(
                 f"⚠️ Warning: Requested quantity ({qty_sold}) exceeds available"
@@ -290,7 +302,9 @@ with tab2:
 st.markdown("---")
 st.subheader("Live Stocks Inventory")
 if not df_stocks.empty:
-  html_table = df_stocks.to_html(index=False, classes="styled-table")
+  # Drop helper column before rendering the stock table
+  display_df = df_stocks.drop(columns=["DISPLAY_LABEL"], errors="ignore")
+  html_table = display_df.to_html(index=False, classes="styled-table")
   st.markdown(html_table, unsafe_allow_html=True)
 else:
   st.info("Loading stock data from Google Sheet...")
