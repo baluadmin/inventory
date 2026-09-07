@@ -1,4 +1,5 @@
 from datetime import datetime
+import time
 import pandas as pd
 import requests
 import streamlit as st
@@ -16,7 +17,9 @@ st.markdown("---")
 @st.cache_data(ttl=0)
 def get_stocks():
   try:
-    response = requests.get(WEB_APP_URL)
+    # Append a timestamp to prevent Google Apps Script from caching the GET response
+    fresh_url = f"{WEB_APP_URL}?t={time.time()}"
+    response = requests.get(fresh_url)
     return response.json()
   except Exception:
     return []
@@ -30,7 +33,6 @@ tab1, tab2 = st.tabs(["⚡ Record Sale", "📥 Add New Product / Purchase"])
 with tab1:
   st.subheader("Process a Customer Sale")
   if not df_stocks.empty and "PRODUCT NAME" in df_stocks.columns:
-    # Streamlit's selectbox natively filters options as you type (e.g., typing 'b' filters items)
     product_list = df_stocks["PRODUCT NAME"].dropna().tolist()
 
     selected_product = st.selectbox(
