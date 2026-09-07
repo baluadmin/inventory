@@ -40,19 +40,12 @@ with tab1:
     not_available = st.text_input("Customer Wanted (Not Available Product)")
 
     if st.button("Confirm Sale", type="primary"):
-      current_row = df_stocks[
-          df_stocks["PRODUCT NAME"] == selected_product
-      ].iloc[0]
-      current_stock = int(current_row["STOCK"])
-      stock_after_sale = current_stock - int(qty_sold)
-
       payload = {
           "action": "recordSale",
           "date": datetime.now().strftime("%Y-%m-%d"),
           "time": datetime.now().strftime("%H:%M:%S"),
           "productName": selected_product,
           "qtySold": int(qty_sold),
-          "stockAfterSale": stock_after_sale,
           "notAvailable": not_available,
       }
 
@@ -60,10 +53,7 @@ with tab1:
       res_json = res.json() if res.status_code == 200 else {}
 
       if res.status_code == 200 and res_json.get("status") == "success":
-        st.success(
-            f"Sale recorded! Stock updated for {selected_product}:"
-            f" {stock_after_sale}"
-        )
+        st.success(f"Sale recorded successfully for {selected_product}!")
         st.cache_data.clear()
         st.rerun()
       else:
