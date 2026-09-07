@@ -8,7 +8,7 @@ st.set_page_config(
     page_title="Bavesh Inventory", page_icon="🌿", layout="wide"
 )
 
-# Professional CSS to center table text, force Light Theme, and hide top toolbar
+# Professional CSS to enforce Light Theme, center text, and hide top toolbar
 st.markdown(
     """
     <style>
@@ -47,12 +47,6 @@ st.markdown(
     }
     h1 a, h2 a, h3 a, h4 a, h5 a, h6 a {
         display: none !important;
-    }
-
-    /* Center text inside dataframes / tables */
-    div[data-testid="stTable"] td, div[data-testid="stTable"] th,
-    .stDataFrame td, .stDataFrame th {
-        text-align: center !important;
     }
     </style>
 """,
@@ -199,6 +193,23 @@ with tab2:
 st.markdown("---")
 st.subheader("Live Stocks Inventory")
 if not df_stocks.empty:
-  st.dataframe(df_stocks, use_container_width=True)
+  # Apply Pandas Styler to center-align both headers and data cells
+  styled_df = (
+      df_stocks.style.set_properties(**{"text-align": "center"})
+      .set_table_styles(
+          [
+              {
+                  "selector": "th",
+                  "props": [
+                      ("text-align", "center"),
+                      ("background-color", "#1b4d3e"),
+                      ("color", "white"),
+                  ],
+              }
+          ]
+      )
+      .hide(axis="index")
+  )
+  st.markdown(styled_df.to_html(), unsafe_allow_html=True)
 else:
   st.info("Loading stock data from Google Sheet...")
