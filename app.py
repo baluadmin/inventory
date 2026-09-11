@@ -174,10 +174,12 @@ st.markdown(
 )
 
 
+# Caching stock data in memory prevents 2-4 second delay on every cart interaction
+@st.cache_data(ttl=120)
 def get_stocks():
     try:
         fresh_url = f"{WEB_APP_URL}?t={time.time()}"
-        response = requests.get(fresh_url)
+        response = requests.get(fresh_url, timeout=6)
         return response.json()
     except Exception:
         return []
@@ -254,8 +256,7 @@ with tab1:
 
                     if qty_sold > available_stock:
                         st.warning(
-                            f"⚠️ Warning: Requested quantity ({qty_sold}) exceeds available"
-                            f" stock ({available_stock}) for {selected_product}!"
+                            f"⚠️ Requested quantity ({qty_sold}) exceeds stock ({available_stock}) for {selected_product}!"
                         )
 
                     total_price = qty_sold * unit_price
@@ -280,8 +281,7 @@ with tab1:
                             "Unit Price": unit_price,
                             "Total Price": total_price,
                         })
-                    st.success(f"Added {selected_product} to invoice!")
-                    st.rerun()
+                    st.toast(f"Added {selected_product} to invoice!", icon="🛒")
 
         st.markdown("<br>", unsafe_allow_html=True)
         if st.session_state["cart"]:
@@ -314,25 +314,27 @@ with tab1:
                     current_date = ist_now.strftime("%Y-%m-%d")
                     current_time = ist_now.strftime("%H:%M:%S")
 
-                    for item in st.session_state["cart"]:
-                        payload = {
-                            "action": "recordSale",
-                            "date": current_date,
-                            "time": current_time,
-                            "productName": item["Product"],
-                            "qtySold": int(item["Quantity"]),
-                            "notAvailable": not_available,
-                        }
-                        res = requests.post(WEB_APP_URL, json=payload)
-                        if (
-                            res.status_code != 200
-                            or res.json().get("status") != "success"
-                        ):
-                            success_all = False
+                    with st.spinner("Submitting transaction to Google Sheets..."):
+                        for item in st.session_state["cart"]:
+                            payload = {
+                                "action": "recordSale",
+                                "date": current_date,
+                                "time": current_time,
+                                "productName": item["Product"],
+                                "qtySold": int(item["Quantity"]),
+                                "notAvailable": not_available,
+                            }
+                            res = requests.post(WEB_APP_URL, json=payload, timeout=8)
+                            if (
+                                res.status_code != 200
+                                or res.json().get("status") != "success"
+                            ):
+                                success_all = False
 
                     if success_all:
-                        st.success("Transaction completed and inventory synchronized!")
+                        st.cache_data.clear()  # Invalidate cached stock to fetch updated count
                         st.session_state["cart"] = []
+                        st.success("Transaction completed and inventory synchronized!")
                         st.rerun()
                     else:
                         st.error("Transaction synchronization failed with backend server.")
@@ -369,10 +371,12 @@ with tab2:
                 "price": float(price),
             }
 
-            res = requests.post(WEB_APP_URL, json=payload)
-            res_json = res.json() if res.status_code == 200 else {}
+            with st.spinner("Recording stock in Google Sheets..."):
+                res = requests.post(WEB_APP_URL, json=payload, timeout=8)
+                res_json = res.json() if res.status_code == 200 else {}
 
             if res.status_code == 200 and res_json.get("status") == "success":
+                st.cache_data.clear()  # Invalidate cached stock to include new entry
                 st.success(
                     f"Successfully updated stock entry for {new_prod_name}!"
                 )
@@ -384,7 +388,15 @@ with tab2:
             st.error("Please enter a valid Product Name.")
 
 st.markdown("<br><hr><br>", unsafe_allow_html=True)
-st.subheader("Live Enterprise Stock Inventory")
+
+col_h, col_r = st.columns([4, 1])
+with col_h:
+    st.subheader("Live Enterprise Stock Inventory")
+with col_r:
+    if st.button("🔄 Sync Stock"):
+        st.cache_data.clear()
+        st.rerun()
+
 if not df_stocks.empty:
     display_df = df_stocks.drop(columns=["DISPLAY_LABEL"], errors="ignore")
     html_table = display_df.to_html(index=False, classes="styled-table")
