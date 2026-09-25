@@ -360,10 +360,44 @@ with tab1:
 
 with tab2:
     st.subheader("Add New Product or Restock Purchase")
+    
+    # Extract existing products and map IDs for suggestions
+    existing_products = []
+    product_lookup = {}
+    id_key_col = "PRODUCT ID" if "PRODUCT ID" in df_stocks.columns else ("PRODUCT CODE" if "PRODUCT CODE" in df_stocks.columns else None)
+    
+    if not df_stocks.empty and "PRODUCT NAME" in df_stocks.columns:
+        existing_products = df_stocks["PRODUCT NAME"].dropna().unique().tolist()
+        for _, row in df_stocks.iterrows():
+            p_name = row["PRODUCT NAME"]
+            p_id = str(row[id_key_col]) if id_key_col and pd.notna(row[id_key_col]) else ""
+            product_lookup[p_name] = p_id
+
+    # Dropdown to choose between updating an existing product or adding a new one
+    selection_options = ["-- Select Existing Product or Add New --"] + existing_products + ["➕ Add New Product (Type Name)"]
+    selected_action = st.selectbox("Select Product to Restock or Choose to Add New", options=selection_options, key="stock_selection_mode")
+
     col_p1, col_p2 = st.columns(2, gap="medium")
-    with col_p1:
-        new_prod_id = st.text_input("Product ID / Code (e.g., 101)")
-        new_prod_name = st.text_input("Product Name")
+    
+    new_prod_id = ""
+    new_prod_name = ""
+
+    if selected_action == "➕ Add New Product (Type Name)":
+        with col_p1:
+            new_prod_id = st.text_input("Product ID / Code (e.g., 101)", key="new_p_id")
+            new_prod_name = st.text_input("Product Name", key="new_p_name")
+    elif selected_action != "-- Select Existing Product or Add New --":
+        # Existing product selected (Suggestions/Autofill)
+        prefilled_name = selected_action
+        prefilled_id = product_lookup.get(prefilled_name, "")
+        with col_p1:
+            new_prod_id = st.text_input("Product ID / Code", value=prefilled_id, key="existing_p_id_display")
+            new_prod_name = st.text_input("Product Name", value=prefilled_name, key="existing_p_name_display")
+    else:
+        with col_p1:
+            new_prod_id = st.text_input("Product ID / Code (e.g., 101)", key="default_p_id")
+            new_prod_name = st.text_input("Product Name", key="default_p_name")
+
     with col_p2:
         qty_purchased = st.number_input(
             "Quantity Purchased", min_value=1, value=1, step=1, key="p_qty"
