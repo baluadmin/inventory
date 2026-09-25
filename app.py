@@ -173,7 +173,6 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-
 # Caching stock data in memory prevents 2-4 second delay on every cart interaction
 @st.cache_data(ttl=120)
 def get_stocks():
@@ -183,7 +182,6 @@ def get_stocks():
         return response.json()
     except Exception:
         return []
-
 
 stocks_data = get_stocks()
 df_stocks = pd.DataFrame(stocks_data)
@@ -254,13 +252,7 @@ with tab1:
                         else 0.0
                     )
 
-                    if qty_sold > available_stock:
-                        st.warning(
-                            f"⚠️ Requested quantity ({qty_sold}) exceeds stock ({available_stock}) for {selected_product}!"
-                        )
-
-                    total_price = qty_sold * unit_price
-
+                    # Check current quantity already inside the cart
                     existing_item = next(
                         (
                             item
@@ -269,19 +261,32 @@ with tab1:
                         ),
                         None,
                     )
-                    if existing_item:
-                        existing_item["Quantity"] += qty_sold
-                        existing_item["Total Price"] = (
-                            existing_item["Quantity"] * existing_item["Unit Price"]
+                    qty_already_in_cart = existing_item["Quantity"] if existing_item else 0
+                    total_requested_qty = qty_already_in_cart + qty_sold
+
+                    # STRICT CHECK: Prevent exceeding available stock
+                    if total_requested_qty > available_stock:
+                        st.error(
+                            f"❌ Cannot add item! Total requested quantity ({total_requested_qty}) "
+                            f"exceeds available stock ({available_stock}) for {selected_product}."
                         )
                     else:
-                        st.session_state["cart"].append({
-                            "Product": selected_product,
-                            "Quantity": qty_sold,
-                            "Unit Price": unit_price,
-                            "Total Price": total_price,
-                        })
-                    st.toast(f"Added {selected_product} to invoice!", icon="🛒")
+                        total_price = qty_sold * unit_price
+
+                        if existing_item:
+                            existing_item["Quantity"] += qty_sold
+                            existing_item["Total Price"] = (
+                                existing_item["Quantity"] * existing_item["Unit Price"]
+                            )
+                        else:
+                            st.session_state["cart"].append({
+                                "Product": selected_product,
+                                "Quantity": qty_sold,
+                                "Unit Price": unit_price,
+                                "Total Price": total_price,
+                            })
+                        st.toast(f"Added {selected_product} to invoice!", icon="🛒")
+                        st.rerun()
 
         st.markdown("<br>", unsafe_allow_html=True)
         if st.session_state["cart"]:
@@ -294,8 +299,7 @@ with tab1:
 
             grand_total = cart_df["Total Price"].sum()
             st.markdown(
-                f"<h3 style='text-align: right; color: #dc2626; margin-top: 15px;'>Grand"
-                f" Total: ₹{grand_total:,.2f}</h3>",
+                f"<h3 style='text-align: right; color: #dc2626; margin-top: 15px;'>Grand Total: ₹{grand_total:,.2f}</h3>",
                 unsafe_allow_html=True,
             )
 
