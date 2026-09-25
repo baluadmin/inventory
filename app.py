@@ -173,14 +173,25 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Caching stock data in memory prevents 2-4 second delay on every cart interaction
+# Diagnostic stock fetching function with detailed error handling
 @st.cache_data(ttl=120)
 def get_stocks():
     try:
         fresh_url = f"{WEB_APP_URL}?t={time.time()}"
-        response = requests.get(fresh_url, timeout=6)
-        return response.json()
-    except Exception:
+        response = requests.get(fresh_url, timeout=10)
+        
+        if response.status_code == 200:
+            try:
+                return response.json()
+            except Exception as json_err:
+                st.error(f"JSON Parse Error: {json_err}")
+                st.text(f"Raw Response Text: {response.text[:500]}")
+                return []
+        else:
+            st.error(f"Server returned status code {response.status_code}")
+            return []
+    except Exception as e:
+        st.error(f"Connection Error: {e}")
         return []
 
 stocks_data = get_stocks()
@@ -336,7 +347,7 @@ with tab1:
                                 success_all = False
 
                     if success_all:
-                        st.cache_data.clear()  # Invalidate cached stock to fetch updated count
+                        st.cache_data.clear()
                         st.session_state["cart"] = []
                         st.success("Transaction completed and inventory synchronized!")
                         st.rerun()
@@ -380,7 +391,7 @@ with tab2:
                 res_json = res.json() if res.status_code == 200 else {}
 
             if res.status_code == 200 and res_json.get("status") == "success":
-                st.cache_data.clear()  # Invalidate cached stock to include new entry
+                st.cache_data.clear()
                 st.success(
                     f"Successfully updated stock entry for {new_prod_name}!"
                 )
