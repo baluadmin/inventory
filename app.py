@@ -178,7 +178,7 @@ st.markdown(
 def get_stocks():
     try:
         fresh_url = f"{WEB_APP_URL}?t={time.time()}"
-        response = requests.get(fresh_url, timeout=10)
+        response = requests.get(fresh_url, timeout=15)
         
         if response.status_code == 200:
             try:
@@ -263,7 +263,6 @@ with tab1:
                         else 0.0
                     )
 
-                    # Check current quantity already inside the cart
                     existing_item = next(
                         (
                             item
@@ -275,7 +274,6 @@ with tab1:
                     qty_already_in_cart = existing_item["Quantity"] if existing_item else 0
                     total_requested_qty = qty_already_in_cart + qty_sold
 
-                    # STRICT CHECK: Prevent exceeding available stock
                     if total_requested_qty > available_stock:
                         st.error(
                             f"❌ Cannot add item! Total requested quantity ({total_requested_qty}) "
@@ -339,7 +337,8 @@ with tab1:
                                 "qtySold": int(item["Quantity"]),
                                 "notAvailable": not_available,
                             }
-                            res = requests.post(WEB_APP_URL, json=payload, timeout=8)
+                            # Increased timeout to 25 seconds
+                            res = requests.post(WEB_APP_URL, json=payload, timeout=25)
                             if (
                                 res.status_code != 200
                                 or res.json().get("status") != "success"
@@ -361,7 +360,6 @@ with tab1:
 with tab2:
     st.subheader("Add New Product or Restock Purchase")
     
-    # Extract existing products and map IDs for suggestions
     existing_products = []
     product_lookup = {}
     id_key_col = "PRODUCT ID" if "PRODUCT ID" in df_stocks.columns else ("PRODUCT CODE" if "PRODUCT CODE" in df_stocks.columns else None)
@@ -373,7 +371,6 @@ with tab2:
             p_id = str(row[id_key_col]) if id_key_col and pd.notna(row[id_key_col]) else ""
             product_lookup[p_name] = p_id
 
-    # Dropdown to choose between updating an existing product or adding a new one
     selection_options = ["-- Select Existing Product or Add New --"] + existing_products + ["➕ Add New Product (Type Name)"]
     selected_action = st.selectbox("Select Product to Restock or Choose to Add New", options=selection_options, key="stock_selection_mode")
 
@@ -387,7 +384,6 @@ with tab2:
             new_prod_id = st.text_input("Product ID / Code (e.g., 101)", key="new_p_id")
             new_prod_name = st.text_input("Product Name", key="new_p_name")
     elif selected_action != "-- Select Existing Product or Add New --":
-        # Existing product selected (Suggestions/Autofill)
         prefilled_name = selected_action
         prefilled_id = product_lookup.get(prefilled_name, "")
         with col_p1:
@@ -421,7 +417,8 @@ with tab2:
             }
 
             with st.spinner("Recording stock in Google Sheets..."):
-                res = requests.post(WEB_APP_URL, json=payload, timeout=8)
+                # Increased timeout to 25 seconds
+                res = requests.post(WEB_APP_URL, json=payload, timeout=25)
                 res_json = res.json() if res.status_code == 200 else {}
 
             if res.status_code == 200 and res_json.get("status") == "success":
